@@ -4578,6 +4578,81 @@ window.showQuestion = function(category, point, btn, side) {
     });
 </script>
 
-
+<script>
+    // إصلاح مشكلة اختيار الفئات
+    (function() {
+        // انتظار تحميل الصفحة بالكامل
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ الصفحة جاهزة، جاري تهيئة الفئات...');
+            
+            // إعادة تهيئة الفئات
+            function initCategories() {
+                const cards = document.querySelectorAll('.card');
+                console.log(`🔍 وجدت ${cards.length} فئة`);
+                
+                if (cards.length === 0) {
+                    console.error('❌ لم يتم العثور على أي فئة!');
+                    return;
+                }
+                
+                // إزالة أي أحداث قديمة
+                cards.forEach(card => {
+                    const newCard = card.cloneNode(true);
+                    card.parentNode.replaceChild(newCard, card);
+                });
+                
+                // إضافة الأحداث الجديدة
+                const newCards = document.querySelectorAll('.card');
+                newCards.forEach(card => {
+                    card.style.cursor = 'pointer';
+                    card.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const categoryName = this.dataset.name;
+                        console.log(`🖱️ تم الضغط على: ${categoryName}`);
+                        
+                        // التحقق من وجود الفئات المختارة
+                        if (typeof selectedCategories === 'undefined') {
+                            window.selectedCategories = window.selectedCategories || [];
+                        }
+                        
+                        // إضافة أو إزالة الفئة
+                        if (this.classList.contains('selected')) {
+                            this.classList.remove('selected');
+                            window.selectedCategories = window.selectedCategories.filter(c => c.name !== categoryName);
+                            console.log(`❌ تم إلغاء اختيار: ${categoryName}`);
+                        } else {
+                            if (window.selectedCategories.length >= 6) {
+                                alert('⚠️ لا يمكنك اختيار أكثر من 6 فئات');
+                                return;
+                            }
+                            this.classList.add('selected');
+                            window.selectedCategories.push({
+                                name: categoryName,
+                                img: this.dataset.img
+                            });
+                            console.log(`✅ تم اختيار: ${categoryName}`);
+                        }
+                    });
+                });
+            }
+            
+            // تهيئة الفئات
+            initCategories();
+            
+            // مراقبة إذا تم تغيير المحتوى ديناميكيًا
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.addedNodes.length) {
+                        initCategories();
+                    }
+                });
+            });
+            
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
+    })();
+</script>
 </body>
 </html>
